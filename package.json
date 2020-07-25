@@ -1,0 +1,19 @@
+{
+  "name": "break-out",
+  "version": "1.0.0",
+  "description": "A simple js game",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/newway-anshul/break-out.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/newway-anshul/break-out/issues"
+  },
+  "homepage": "https://github.com/newway-anshul/break-out#readme"
+}
