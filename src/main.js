@@ -22,7 +22,12 @@ let bo_default_config = {
   textColor: "#ffffff",
   ballSpeed: 1,
 };
-const bo_level = [10, 10, 10];
+const bo_level = [
+  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+];
+let score = 0;
 let tile_x_gap = 8;
 let tile_y_gap = 8;
 let tile_width = 50;
@@ -57,8 +62,8 @@ function set_game(congig_obj = bo_default_config) {
   bo_canvas.style.backgroundColor = congig_obj.backGroundColor;
   AddTile(...Object.values(platForm_config));
   AddBall(ball_x, ball_y);
-  renderText("Score:", score_x, score_y);
-  renderText("Level:", level_x, level_y);
+  renderText("Score: " + score, score_x, score_y);
+  renderText("Level:1", level_x, level_y);
   renderLevel();
   movePlateForm();
   moveBall();
@@ -108,6 +113,7 @@ function moveBall() {
   ctx.fillStyle = bo_default_config.backgroundColor;
   timer = setInterval(() => {
     detectCollision();
+    detectTileCollision();
     canvasClear(
       ball_x - ball_radius,
       ball_y - ball_radius,
@@ -129,6 +135,10 @@ function moveBall() {
     ball_x = ball_x + ball_x_direction * ball_x_increment;
     ball_y = ball_y + ball_y_direction * ball_y_increment;
     AddBall(ball_x, ball_y);
+    /*update score*/
+    canvasClear(0, 0, 150, 20);
+    renderText("Score :" + score, score_x, score_y);
+    /*end*/
   }, bo_default_config.ballSpeed);
 }
 function detectCollision() {
@@ -158,12 +168,38 @@ function detectCollision() {
   }
   /*end*/
 }
+function detectTileCollision() {
+  bo_level.find((ele, index) => {
+    ele.find((item, i) => {
+      const tile = {
+        x: ini_tile_x + i * (tile_x_gap + tile_width),
+        y: ini_tile_y + index * (tile_height + tile_y_gap),
+        w: tile_width,
+        h: tile_height,
+      };
+      if (item && ball_y <= tile.y + tile.h + ball_radius) {
+        if (
+          ball_x >= tile.x - ball_radius &&
+          ball_x <= tile.x + tile.w + ball_radius
+        ) {
+          ball_y_direction = -ball_y_direction;
+          bo_level[index][i] = 0;
+          score++;
+          canvasClear(...Object.values(tile));
+          return true;
+        }
+      }
+    });
+  });
+
+  // renderLevel();
+}
 function renderLevel() {
   bo_level.forEach((element) => {
-    for (i = 0; i < element; i++) {
+    element.forEach(() => {
       AddTile(tile_x, tile_y);
       tile_x = tile_x + tile_x_gap + tile_width;
-    }
+    });
     tile_x = ini_tile_x;
     tile_y = tile_y + tile_height + tile_y_gap;
   });
