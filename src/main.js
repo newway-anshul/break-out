@@ -28,6 +28,7 @@ const bo_level = [
   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
 ];
 let score = 0;
+let lives = 3;
 let tile_x_gap = 8;
 let tile_y_gap = 8;
 let tile_width = 50;
@@ -41,25 +42,29 @@ let level_y = 20;
 let tile_x = ini_tile_x;
 let tile_y = ini_tile_y;
 let platForm_config = {
-  x: 260,
-  y: 265,
+  x: null,
+  y: null,
   w: 90,
   h: 10,
 };
-let ball_x = 300;
-let ball_y = 200;
+let ball_ini_x = 300;
+let ball_ini_y = 200;
+let ball_x = ball_ini_x;
+let ball_y = ball_ini_y;
 let ball_x_increment = 1;
 let ball_y_increment = 1;
 let ball_x_direction = 1;
 let ball_y_direction = 1;
 const ball_radius = 10;
 function set_game(congig_obj = bo_default_config) {
-  bo_default_config = congig_obj;
+  bo_default_config = { ...bo_default_config, ...congig_obj };
   bo_canvas = document.getElementById("bo-main-scene");
   ctx = bo_canvas.getContext("2d");
-  bo_canvas.height = congig_obj.height;
-  bo_canvas.width = congig_obj.width;
-  bo_canvas.style.backgroundColor = congig_obj.backGroundColor;
+  bo_canvas.height = bo_default_config.height;
+  bo_canvas.width = bo_default_config.width;
+  bo_canvas.style.backgroundColor = bo_default_config.backGroundColor;
+  platForm_config.x = bo_default_config.width/2;
+  platForm_config.y = bo_default_config.height-20;
   AddTile(...Object.values(platForm_config));
   AddBall(ball_x, ball_y);
   renderText("Score: " + score, score_x, score_y);
@@ -89,8 +94,9 @@ function movePlateForm() {
  * each tile will have 5px spacing
  */
 function AddTile(x, y, w = tile_width, h = tile_height) {
-  ctx.fillStyle = bo_default_config.tileColor;
+  ctx.fillStyle = '#'+(0x1000000+(Math.random())*0xffffff).toString(16).substr(1,6);
   canvasFillRect(x, y, w, h);
+  ctx.fillStyle = bo_default_config.tileColor;
 }
 function AddBall(x, y, r = ball_radius) {
   ctx.fillStyle = bo_default_config.ballColor;
@@ -121,9 +127,11 @@ function moveBall() {
       2 * ball_radius
     );
     switch (true) {
-      case ball_y >= bo_default_config.height - ball_radius ||
-        ball_y <= ball_radius:
+      case ball_y <= ball_radius:
         ball_y_direction = -ball_y_direction;
+        break;
+      case ball_y >= bo_default_config.height - ball_radius:
+        updateLives();
         break;
       case ball_x >= bo_default_config.width - ball_radius ||
         ball_x <= ball_radius:
@@ -136,13 +144,37 @@ function moveBall() {
     ball_y = ball_y + ball_y_direction * ball_y_increment;
     AddBall(ball_x, ball_y);
     /*update score*/
-    canvasClear(0, 0, 150, 20);
-    renderText("Score :" + score, score_x, score_y);
+    canvasClear(0, 0, 90, 20);
+    renderText("Score:" + score, score_x, score_y);
+    canvasClear(level_x, 0, 70, 20);
+    renderText("Level:1", level_x, level_y);
     /*end*/
   }, bo_default_config.ballSpeed);
 }
+function updateLives() {
+  --lives;
+  if (lives === 0) {
+    clearInterval(timer);
+    renderText(
+      "!!!Out of lives, your score is " + score,
+      bo_default_config.width / 2,
+      bo_default_config.height / 2
+    );
+  } else {
+    clearInterval(timer);
+    canvasClear(
+      ball_x - ball_radius,
+      ball_y - ball_radius,
+      2 * ball_radius,
+      2 * ball_radius
+    );
+    ball_x = ball_ini_x;
+    ball_y = ball_ini_y;
+    AddBall(ball_x, ball_y);
+    moveBall();
+  }
+}
 function detectCollision() {
-  // detect platform collision
   /**
    * when ball hitting edges
    */
